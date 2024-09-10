@@ -22,9 +22,9 @@ oop_viewer examples
 ![scikit-learn-ensemble](docs/scikit-learn-ensemble.png)
 
 ## Backlog
-- [] Multiple Inheritance
-- [] Colour nodes based on file
-- [] Disambiguity overlapping nodes
+- [ ] Multiple Inheritance
+- [ ] Colour nodes based on file
+- [ ] Disambiguity overlapping nodes
 
 ## How to build
 

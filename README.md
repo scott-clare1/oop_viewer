@@ -2,6 +2,14 @@
 
 A CLI tool to produce interactive visualisations of OOP inheritance in Python projects.
 
+## Examples
+
+### Scikit-Learn - Ensemble Module
+![scikit-learn-ensemble](docs/scikit-learn-ensemble.png)
+
+### FastAPI - Everything
+![fastapi](docs/fastapi.png)
+
 ## Usage
 
 ### On an individual file
@@ -15,11 +23,6 @@ oop_viewer examples/dummy_python.py
 ```bash
 oop_viewer examples
 ```
-
-## Examples
-
-### Scikit-Learn - Ensemble Module
-![scikit-learn-ensemble](docs/scikit-learn-ensemble.png)
 
 ## Backlog
 - [ ] Multiple Inheritance

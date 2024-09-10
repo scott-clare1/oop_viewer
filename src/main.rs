@@ -1,10 +1,4 @@
-use eframe::{run_native, App, CreationContext};
-use egui::Context;
-use egui_graphs::{
-    DefaultEdgeShape, DefaultNodeShape, GraphView, SettingsInteraction, SettingsNavigation,
-    SettingsStyle,
-};
-use petgraph::graph::{EdgeIndex, NodeIndex};
+use eframe::{run_native};
 use petgraph::prelude::{DiGraphMap, StableGraph};
 use std::env;
 use std::fs;
@@ -12,6 +6,7 @@ use std::io;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::thread;
+mod app;
 
 fn read_file(path: &str) -> String {
     let contents =
@@ -162,48 +157,6 @@ fn build_graph<'a>(edges: &'static [(String, String)]) -> petgraph::Graph<&'a st
     graph.into_graph()
 }
 
-pub struct BasicApp<'a> {
-    g: egui_graphs::Graph<&'a str, i32>,
-}
-
-impl<'a> BasicApp<'a> {
-    fn new(graph: StableGraph<&'a str, i32>, _: &CreationContext<'_>) -> Self {
-        let mut g = egui_graphs::Graph::from(&graph);
-        for (idx, class) in graph.node_weights().enumerate() {
-            g.node_mut(NodeIndex::new(idx))
-                .unwrap()
-                .set_label(class.to_string());
-            let edge = g.edge_mut(EdgeIndex::new(idx));
-            if edge.is_some() {
-                edge.unwrap().set_label("".to_string());
-            }
-        }
-        Self { g }
-    }
-}
-
-impl<'a> App for BasicApp<'a> {
-    fn update(&mut self, ctx: &Context, _: &mut eframe::Frame) {
-        let widget =
-            &mut GraphView::<_, _, _, _, DefaultNodeShape, DefaultEdgeShape>::new(&mut self.g)
-                .with_interactions(
-                    &SettingsInteraction::default()
-                        .with_dragging_enabled(true)
-                        .with_node_selection_enabled(true)
-                        .with_edge_selection_enabled(true),
-                )
-                .with_navigations(
-                    &SettingsNavigation::default()
-                        .with_fit_to_screen_enabled(false)
-                        .with_zoom_and_pan_enabled(true),
-                )
-                .with_styles(&SettingsStyle::new().with_labels_always(true));
-        egui::CentralPanel::default().show(ctx, |ui| {
-            ui.add(widget);
-        });
-    }
-}
-
 struct ReadModule {
     files: Vec<String>,
 }
@@ -284,7 +237,7 @@ fn main() {
     run_native(
         "",
         native_options,
-        Box::new(|cc| Ok(Box::new(BasicApp::new(stable_graph, cc)))),
+        Box::new(|cc| Ok(Box::new(app::BasicApp::new(stable_graph, cc)))),
     )
     .unwrap();
 }

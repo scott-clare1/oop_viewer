@@ -232,7 +232,9 @@ fn main() {
 
     let stable_graph = StableGraph::from(graph);
 
-    let native_options = eframe::NativeOptions::default();
+    let mut native_options = eframe::NativeOptions::default();
+
+    native_options.viewport.maximized = Some(true);
 
     run_native(
         "",

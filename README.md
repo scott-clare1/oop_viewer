@@ -19,7 +19,7 @@ oop_viewer examples
 ## Examples
 
 ### Scikit-Learn - Ensemble Module
-[!scikit-learn-ensemble](docs/scikit-learn-ensemble.png)
+![scikit-learn-ensemble](docs/scikit-learn-ensemble.png)
 
 ## Backlog
 - [] Multiple Inheritance

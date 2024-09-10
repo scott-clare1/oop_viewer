@@ -23,6 +23,8 @@ oop_viewer examples
 
 ## Backlog
 - [] Multiple Inheritance
+- [] Colour nodes based on file
+- [] Disambiguity overlapping nodes
 
 ## How to build
 

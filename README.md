@@ -28,6 +28,7 @@ oop_viewer examples
 - [ ] Multiple Inheritance
 - [ ] Colour nodes based on file
 - [ ] Disambiguity overlapping nodes
+- [ ] Allowing for passing of class across module
 
 ## How to build
 

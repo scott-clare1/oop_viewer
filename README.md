@@ -1,4 +1,4 @@
-# OOP Viewer
+# OOP Viewer :spider_web:
 
 A CLI tool to produce interactive visualisations of OOP inheritance in Python projects.
 

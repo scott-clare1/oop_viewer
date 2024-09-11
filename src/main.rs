@@ -1,4 +1,4 @@
-use eframe::{run_native};
+use eframe::run_native;
 use petgraph::prelude::{DiGraphMap, StableGraph};
 use std::env;
 use std::fs;
@@ -205,10 +205,9 @@ fn process_files(contents: Vec<String>) -> &'static [(String, String)] {
         handle.join().expect("Thread failed");
     }
 
-    let final_results = edges.lock().unwrap();
+    let edges = edges.lock().unwrap();
 
-    let edges: &'static [(String, String)] = Box::leak(final_results.to_vec().into_boxed_slice());
-    edges
+    Box::leak(edges.to_vec().into_boxed_slice())
 }
 
 fn main() {

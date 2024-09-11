@@ -10,7 +10,7 @@ A CLI tool to produce interactive visualisations of OOP inheritance in Python pr
 ### FastAPI - Everything
 ![fastapi](docs/fastapi.png)
 
-### MLFlow - Classes Referencing `Exception`
+### MLFlow - Classes Inheriting `Exception`
 ![mlflow-exception](docs/mlflow-exceptions.png)
 
 ## Usage

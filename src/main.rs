@@ -101,9 +101,7 @@ fn _clean_child_class<'a>(child_class: &'a String) -> Option<String> {
     token.next()
 }
 
-fn build_edges<'a>(
-    child_classes: Vec<&'a String>,
-) -> Vec<(String, String)> {
+fn build_edges<'a>(child_classes: Vec<&'a String>) -> Vec<(String, String)> {
     let mut edges = vec![];
     for class in child_classes.iter() {
         let parent_class = get_parent_class(class);
@@ -113,9 +111,11 @@ fn build_edges<'a>(
     edges
 }
 
+#[derive(Debug)]
 struct CommandLineConfig {
     file_path: Option<String>,
     module: Option<String>,
+    class: Option<String>,
 }
 
 impl CommandLineConfig {
@@ -123,15 +123,26 @@ impl CommandLineConfig {
         if args.len() < 1 {
             panic!("not enough arguments");
         }
+
+        let class = if args.len() == 3 {
+            Some(args[2].clone())
+        } else if args.len() == 2 {
+            None
+        } else {
+            panic!("too many arguments");
+        };
+
         if args[1].ends_with(".py") {
             Self {
                 file_path: Some(args[1].clone()),
                 module: None,
+                class,
             }
         } else {
             Self {
                 file_path: None,
                 module: Some(args[1].clone()),
+                class,
             }
         }
     }
@@ -184,7 +195,7 @@ impl ReadModule {
     }
 }
 
-fn process_files(contents: Vec<String>) -> &'static [(String, String)] {
+fn process_files(contents: Vec<String>, class: Option<String>) -> &'static [(String, String)] {
     let edges = Arc::new(Mutex::new(Vec::new()));
 
     let handles: Vec<_> = contents
@@ -205,7 +216,33 @@ fn process_files(contents: Vec<String>) -> &'static [(String, String)] {
 
     let edges = edges.lock().unwrap();
 
-    Box::leak(edges.to_vec().into_boxed_slice())
+    Box::leak(filter_edges_by_class(edges.to_vec(), class).into_boxed_slice())
+}
+
+fn filter_edges_by_class(
+    edges: Vec<(String, String)>,
+    class: Option<String>,
+) -> Vec<(String, String)> {
+    fn _contains_class((child, parent): (String, String), class: String) -> bool {
+        if child == class || parent == class {
+            true
+        } else {
+            false
+        }
+    }
+
+    if class.is_some() {
+        let class = class.unwrap();
+        edges
+            .iter()
+            .filter(|(child, parent)| {
+                _contains_class((child.to_string(), parent.to_string()), class.clone())
+            })
+            .map(|(child, parent)| (child.to_string(), parent.to_string()))
+            .collect()
+    } else {
+        edges
+    }
 }
 
 fn main() {
@@ -223,7 +260,7 @@ fn main() {
         contents = module_reader.files;
     };
 
-    let edges: &'static [(String, String)] = process_files(contents);
+    let edges: &'static [(String, String)] = process_files(contents, config.class);
 
     let graph = build_graph(edges);
 

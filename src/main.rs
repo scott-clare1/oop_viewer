@@ -158,12 +158,12 @@ fn parse_file<'a>(contents: String) -> Vec<(String, String)> {
     build_edges(child_classes)
 }
 
-fn build_graph<'a>(edges: &'static [(String, String)]) -> petgraph::Graph<&'a str, i32> {
+fn build_graph<'a>(edges: &'static [(String, String)]) -> StableGraph<&'a str, i32> {
     let mut graph = DiGraphMap::new();
     for edge in edges.iter() {
         graph.add_edge(edge.1.as_str(), edge.0.as_str(), -1);
     }
-    graph.into_graph()
+    StableGraph::from(graph.into_graph())
 }
 
 struct ReadModule {
@@ -264,8 +264,6 @@ fn main() {
 
     let graph = build_graph(edges);
 
-    let stable_graph = StableGraph::from(graph);
-
     let mut native_options = eframe::NativeOptions::default();
 
     native_options.viewport.maximized = Some(true);
@@ -273,7 +271,7 @@ fn main() {
     run_native(
         "",
         native_options,
-        Box::new(|cc| Ok(Box::new(app::OOPViewerApp::new(stable_graph, cc)))),
+        Box::new(|cc| Ok(Box::new(app::OOPViewerApp::new(graph, cc)))),
     )
     .unwrap();
 }

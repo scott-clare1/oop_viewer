@@ -3,9 +3,11 @@ ATTRIBUTE = 10
 class TestClass:
     pass
 
-
-class ChildChildClass(ChildClass):
+class ChildClass(TestClass):
     pass
 
-class ChildClass(TestClass):
+class OtherChildClass(TestClass):
+    pass
+
+class ChildChildClass(ChildClass):
     pass

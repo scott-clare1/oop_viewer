@@ -124,26 +124,21 @@ impl CommandLineConfig {
             panic!("not enough arguments");
         }
 
-        let class = if args.len() == 3 {
-            Some(args[2].clone())
-        } else if args.len() == 2 {
-            None
-        } else {
-            panic!("too many arguments");
+        let class = match args.len() {
+            3 => Some(args[2].clone()),
+            2 => None,
+            _ => panic!("too many arguments")
         };
 
-        if args[1].ends_with(".py") {
-            Self {
-                file_path: Some(args[1].clone()),
-                module: None,
-                class,
-            }
-        } else {
-            Self {
-                file_path: None,
-                module: Some(args[1].clone()),
-                class,
-            }
+        let (file_path, module) = match args[1].ends_with(".py") {
+            true => (Some(args[1].clone()), None),
+            false => (None, Some(args[1].clone()))
+        }
+
+        Self {
+            file_path,
+            module,
+            class,
         }
     }
 }

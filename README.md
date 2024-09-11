@@ -10,6 +10,9 @@ A CLI tool to produce interactive visualisations of OOP inheritance in Python pr
 ### FastAPI - Everything
 ![fastapi](docs/fastapi.png)
 
+### MLFlow - Classes Referencing `Exception`
+![mlflow-exception](docs/mlflow-exceptions.png)
+
 ## Usage
 
 ### On an individual file
@@ -24,11 +27,17 @@ oop_viewer examples/dummy_python.py
 oop_viewer examples
 ```
 
+### Including a specified class
+
+```bash
+oop_viewer examples OtherChildClass
+```
+
 ## Backlog
 - [ ] Multiple Inheritance
 - [ ] Colour nodes based on file
-- [ ] Disambiguity overlapping nodes
-- [ ] Allowing for passing of class across module
+- [ ] Disambiguiting overlapping nodes
+- [X] Allowing for passing of class across module
 
 ## How to build
 

@@ -5,7 +5,7 @@ use egui_graphs::{
     SettingsStyle,
 };
 use petgraph::graph::{EdgeIndex, NodeIndex};
-use petgraph::prelude::{StableGraph};
+use petgraph::prelude::StableGraph;
 
 pub struct BasicApp<'a> {
     g: egui_graphs::Graph<&'a str, i32>,

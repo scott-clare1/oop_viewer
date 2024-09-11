@@ -102,9 +102,9 @@ fn _clean_child_class<'a>(child_class: &'a String) -> Option<String> {
 }
 
 fn build_edges<'a>(
-    mut edges: Vec<(String, String)>,
     child_classes: Vec<&'a String>,
 ) -> Vec<(String, String)> {
+    let mut edges = vec![];
     for class in child_classes.iter() {
         let parent_class = get_parent_class(class);
         let child_class = _clean_child_class(*class).unwrap();
@@ -144,9 +144,7 @@ fn parse_file<'a>(contents: String) -> Vec<(String, String)> {
 
     let child_classes = get_child_classes(classes);
 
-    let edges = vec![];
-
-    build_edges(edges, child_classes)
+    build_edges(child_classes)
 }
 
 fn build_graph<'a>(edges: &'static [(String, String)]) -> petgraph::Graph<&'a str, i32> {

@@ -238,7 +238,7 @@ fn main() {
     run_native(
         "",
         native_options,
-        Box::new(|cc| Ok(Box::new(app::BasicApp::new(stable_graph, cc)))),
+        Box::new(|cc| Ok(Box::new(app::OOPViewerApp::new(stable_graph, cc)))),
     )
     .unwrap();
 }

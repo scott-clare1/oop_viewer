@@ -7,11 +7,11 @@ use egui_graphs::{
 use petgraph::graph::{EdgeIndex, NodeIndex};
 use petgraph::prelude::StableGraph;
 
-pub struct BasicApp<'a> {
+pub struct OOPViewerApp<'a> {
     g: egui_graphs::Graph<&'a str, i32>,
 }
 
-impl<'a> BasicApp<'a> {
+impl<'a> OOPViewerApp<'a> {
     pub fn new(graph: StableGraph<&'a str, i32>, _: &CreationContext<'_>) -> Self {
         let mut g = egui_graphs::Graph::from(&graph);
         for (idx, class) in graph.node_weights().enumerate() {
@@ -27,7 +27,7 @@ impl<'a> BasicApp<'a> {
     }
 }
 
-impl<'a> App for BasicApp<'a> {
+impl<'a> App for OOPViewerApp<'a> {
     fn update(&mut self, ctx: &Context, _: &mut eframe::Frame) {
         let widget =
             &mut GraphView::<_, _, _, _, DefaultNodeShape, DefaultEdgeShape>::new(&mut self.g)

@@ -120,19 +120,17 @@ struct CommandLineConfig {
 
 impl CommandLineConfig {
     fn new(args: &[String]) -> Self {
-        if args.len() < 1 {
-            panic!("not enough arguments");
-        }
-
         let class = match args.len() {
             3 => Some(args[2].clone()),
             2 => None,
-            _ => panic!("too many arguments")
+            _ => panic!(
+                "Incorrect number of arguments. The tool should take either one or two positional arguments."
+            ),
         };
 
         let (file_path, module) = match args[1].ends_with(".py") {
             true => (Some(args[1].clone()), None),
-            false => (None, Some(args[1].clone()))
+            false => (None, Some(args[1].clone())),
         };
 
         Self {

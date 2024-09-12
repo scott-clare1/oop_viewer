@@ -133,7 +133,7 @@ impl CommandLineConfig {
         let (file_path, module) = match args[1].ends_with(".py") {
             true => (Some(args[1].clone()), None),
             false => (None, Some(args[1].clone()))
-        }
+        };
 
         Self {
             file_path,

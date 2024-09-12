@@ -111,35 +111,6 @@ fn build_edges<'a>(child_classes: Vec<&'a String>) -> Vec<(String, String)> {
     edges
 }
 
-struct CommandLineConfig {
-    file_path: Option<String>,
-    module: Option<String>,
-    class: Option<String>,
-}
-
-impl CommandLineConfig {
-    fn new(args: &[String]) -> Self {
-        let class = match args.len() {
-            3 => Some(args[2].clone()),
-            2 => None,
-            _ => panic!(
-                "Incorrect number of arguments. The tool should take either one or two positional arguments."
-            ),
-        };
-
-        let (file_path, module) = match args[1].ends_with(".py") {
-            true => (Some(args[1].clone()), None),
-            false => (None, Some(args[1].clone())),
-        };
-
-        Self {
-            file_path,
-            module,
-            class,
-        }
-    }
-}
-
 fn parse_file<'a>(contents: String) -> Vec<(String, String)> {
     let tokens = tokenize(contents);
 
@@ -156,6 +127,56 @@ fn build_graph<'a>(edges: &'static [(String, String)]) -> StableGraph<&'a str, i
         graph.add_edge(edge.1.as_str(), edge.0.as_str(), -1);
     }
     StableGraph::from(graph.into_graph())
+}
+
+fn process_files(contents: Vec<String>, class: Option<String>) -> &'static [(String, String)] {
+    let edges = Arc::new(Mutex::new(Vec::new()));
+
+    let handles: Vec<_> = contents
+        .into_iter()
+        .map(|content| {
+            let edges = Arc::clone(&edges);
+            thread::spawn(move || {
+                let processed = parse_file(content.to_string());
+                let mut res = edges.lock().unwrap();
+                res.extend(processed);
+            })
+        })
+        .collect();
+
+    for handle in handles {
+        handle.join().expect("Thread failed");
+    }
+
+    let edges = edges.lock().unwrap();
+
+    Box::leak(filter_edges_by_class(edges.to_vec(), class).into_boxed_slice())
+}
+
+fn _edge_contains_class((child, parent): (String, String), class: String) -> bool {
+    if child == class || parent == class {
+        true
+    } else {
+        false
+    }
+}
+
+fn filter_edges_by_class(
+    edges: Vec<(String, String)>,
+    class: Option<String>,
+) -> Vec<(String, String)> {
+    if class.is_some() {
+        let class = class.unwrap();
+        edges
+            .iter()
+            .filter(|(child, parent)| {
+                _edge_contains_class((child.to_string(), parent.to_string()), class.clone())
+            })
+            .map(|(child, parent)| (child.to_string(), parent.to_string()))
+            .collect()
+    } else {
+        edges
+    }
 }
 
 struct ReadModule {
@@ -187,53 +208,32 @@ impl ReadModule {
     }
 }
 
-fn process_files(contents: Vec<String>, class: Option<String>) -> &'static [(String, String)] {
-    let edges = Arc::new(Mutex::new(Vec::new()));
-
-    let handles: Vec<_> = contents
-        .into_iter()
-        .map(|content| {
-            let edges = Arc::clone(&edges);
-            thread::spawn(move || {
-                let processed = parse_file(content.to_string());
-                let mut res = edges.lock().unwrap();
-                res.extend(processed);
-            })
-        })
-        .collect();
-
-    for handle in handles {
-        handle.join().expect("Thread failed");
-    }
-
-    let edges = edges.lock().unwrap();
-
-    Box::leak(filter_edges_by_class(edges.to_vec(), class).into_boxed_slice())
+struct CommandLineConfig {
+    file_path: Option<String>,
+    module: Option<String>,
+    class: Option<String>,
 }
 
-fn filter_edges_by_class(
-    edges: Vec<(String, String)>,
-    class: Option<String>,
-) -> Vec<(String, String)> {
-    fn _contains_class((child, parent): (String, String), class: String) -> bool {
-        if child == class || parent == class {
-            true
-        } else {
-            false
-        }
-    }
+impl CommandLineConfig {
+    fn new(args: &[String]) -> Self {
+        let class = match args.len() {
+            3 => Some(args[2].clone()),
+            2 => None,
+            _ => panic!(
+                "Incorrect number of arguments. The tool should take either one or two positional arguments."
+            ),
+        };
 
-    if class.is_some() {
-        let class = class.unwrap();
-        edges
-            .iter()
-            .filter(|(child, parent)| {
-                _contains_class((child.to_string(), parent.to_string()), class.clone())
-            })
-            .map(|(child, parent)| (child.to_string(), parent.to_string()))
-            .collect()
-    } else {
-        edges
+        let (file_path, module) = match args[1].ends_with(".py") {
+            true => (Some(args[1].clone()), None),
+            false => (None, Some(args[1].clone())),
+        };
+
+        Self {
+            file_path,
+            module,
+            class,
+        }
     }
 }
 

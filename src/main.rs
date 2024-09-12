@@ -21,7 +21,7 @@ fn tokenize(contents: String) -> Vec<String> {
         .collect()
 }
 
-fn _is_pascal_case(token: &String) -> bool {
+fn is_pascal_case(token: &String) -> bool {
     let mut prev_is_upper: bool = false;
 
     for (idx, c) in token.chars().enumerate() {
@@ -58,7 +58,7 @@ fn get_pascal_case<'a>(tokens: &'a Vec<String>) -> Vec<&'a String> {
     classes
 }
 
-fn _is_child<'a>(class: &'a String) -> bool {
+fn is_child<'a>(class: &'a String) -> bool {
     class.contains(&['(', ')'])
 }
 
@@ -92,7 +92,7 @@ fn get_parent_class<'a>(child_class: &'a String) -> String {
     parent_class
 }
 
-fn _clean_child_class<'a>(child_class: &'a String) -> Option<String> {
+fn clean_child_class<'a>(child_class: &'a String) -> Option<String> {
     let mut tokens = child_class
         .split('(')
         .map(|token| token.to_string())
@@ -153,7 +153,7 @@ fn process_files(contents: Vec<String>, class: Option<String>) -> &'static [(Str
     Box::leak(filter_edges_by_class(edges.to_vec(), class).into_boxed_slice())
 }
 
-fn _edge_contains_class((child, parent): (String, String), class: String) -> bool {
+fn edge_contains_class((child, parent): (String, String), class: String) -> bool {
     if child == class || parent == class {
         true
     } else {

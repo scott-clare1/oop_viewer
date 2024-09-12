@@ -9,13 +9,13 @@ use std::thread;
 mod app;
 
 fn read_file(path: &str) -> String {
-    let contents =
+    let content =
         fs::read_to_string(path).expect(format!("Cannot read input file: {}", path).as_str());
-    contents
+    content
 }
 
-fn tokenize(contents: String) -> Vec<String> {
-    contents
+fn tokenize(content: String) -> Vec<String> {
+    content
         .split_whitespace()
         .map(|token| token.to_string())
         .collect()
@@ -45,7 +45,7 @@ fn get_pascal_case<'a>(tokens: &'a Vec<String>) -> Vec<&'a String> {
     let mut classes: Vec<&String> = vec![];
     let mut prev_token_class: bool = false;
     for token in tokens.iter() {
-        if _is_pascal_case(token) == true && token.ends_with(':') && prev_token_class == true {
+        if is_pascal_case(token) == true && token.ends_with(':') && prev_token_class == true {
             classes.push(token)
         }
 
@@ -66,7 +66,7 @@ fn get_child_classes<'a>(classes: Vec<&'a String>) -> Vec<&'a String> {
     let mut child_classes = vec![];
 
     for class in classes.iter() {
-        if _is_child(class) == true {
+        if is_child(class) == true {
             child_classes.push(*class);
         }
     }
@@ -105,7 +105,7 @@ fn build_edges<'a>(child_classes: Vec<&'a String>) -> Vec<(String, String)> {
     let mut edges = vec![];
     for class in child_classes.iter() {
         let parent_class = get_parent_class(class);
-        let child_class = _clean_child_class(*class).unwrap();
+        let child_class = clean_child_class(*class).unwrap();
         edges.push((child_class, parent_class));
     }
     edges
@@ -170,13 +170,26 @@ fn filter_edges_by_class(
         edges
             .iter()
             .filter(|(child, parent)| {
-                _edge_contains_class((child.to_string(), parent.to_string()), class.clone())
+                edge_contains_class((child.to_string(), parent.to_string()), class.clone())
             })
             .map(|(child, parent)| (child.to_string(), parent.to_string()))
             .collect()
     } else {
         edges
     }
+}
+
+fn extract_file_contents(file_path: Option<String>, module: Option<String>) -> Vec<String> {
+    let mut contents = vec![];
+
+    if file_path.is_some() {
+        contents.push(read_file(file_path.unwrap().as_str()))
+    } else {
+        let mut module_reader = ReadModule::new();
+        let _ = module_reader.read(Path::new(module.unwrap().as_str()));
+        contents = module_reader.files;
+    };
+    contents
 }
 
 struct ReadModule {
@@ -242,15 +255,7 @@ fn main() {
 
     let config = CommandLineConfig::new(&args);
 
-    let mut contents = vec![];
-
-    if config.file_path.is_some() {
-        contents.push(read_file(config.file_path.unwrap().as_str()))
-    } else {
-        let mut module_reader = ReadModule::new();
-        let _ = module_reader.read(Path::new(config.module.unwrap().as_str()));
-        contents = module_reader.files;
-    };
+    let contents = extract_file_contents(config.file_path, config.module);
 
     let edges: &'static [(String, String)] = process_files(contents, config.class);
 

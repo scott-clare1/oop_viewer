@@ -111,7 +111,6 @@ fn build_edges<'a>(child_classes: Vec<&'a String>) -> Vec<(String, String)> {
     edges
 }
 
-#[derive(Debug)]
 struct CommandLineConfig {
     file_path: Option<String>,
     module: Option<String>,

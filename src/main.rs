@@ -41,39 +41,62 @@ fn is_pascal_case(token: &String) -> bool {
     true
 }
 
-fn get_pascal_case<'a>(tokens: &'a Vec<String>) -> Vec<&'a String> {
-    let mut classes: Vec<&String> = vec![];
+fn get_pascal_case<'a>(tokens: &'a Vec<String>) -> Vec<Vec<&String>> {
+    let mut classes: Vec<Vec<&String>> = vec![];
     let mut prev_token_class: bool = false;
-    for token in tokens.iter() {
-        if is_pascal_case(token) == true && token.ends_with(':') && prev_token_class == true {
-            classes.push(token)
+    let mut tokens_iter = tokens.iter();
+
+    let mut token = tokens_iter.next();
+
+    while token.is_some() {
+        if is_pascal_case(token.unwrap()) == true && prev_token_class == true {
+            if token.unwrap().ends_with(':') {
+                classes.push(vec![token.unwrap()])
+            } else if token.unwrap().ends_with(',') {
+                let mut multi_inheritance_token = vec![];
+                while !token.unwrap().ends_with(':') {
+                    multi_inheritance_token.push(token.unwrap());
+                    token = tokens_iter.next();
+                }
+                multi_inheritance_token.push(token.unwrap());
+                classes.push(multi_inheritance_token)
+            }
         }
 
-        if token == "class" {
+        if token.unwrap() == "class" {
             prev_token_class = true;
         } else {
             prev_token_class = false;
         }
+
+        token = tokens_iter.next();
     }
+
     classes
 }
 
-fn is_child<'a>(class: &'a String) -> bool {
+fn is_sinlge_inheritance_child<'a>(class: &'a String) -> bool {
     class.contains(&['(', ')'])
 }
 
-fn get_child_classes<'a>(classes: Vec<&'a String>) -> Vec<&'a String> {
+fn get_child_classes<'a>(classes: Vec<Vec<&String>>) -> Vec<String> {
     let mut child_classes = vec![];
 
     for class in classes.iter() {
-        if is_child(class) == true {
-            child_classes.push(*class);
+        if is_sinlge_inheritance_child(class[0]) == true {
+            child_classes.push(
+                class
+                    .iter()
+                    .map(|c| c.to_string())
+                    .collect::<Vec<String>>()
+                    .join(" "),
+            );
         }
     }
     child_classes
 }
 
-fn get_parent_class<'a>(child_class: &'a String) -> String {
+fn get_parent_class<'a>(child_class: &'a String) -> Vec<String> {
     let mut begin_parent_class: bool = false;
     let mut parent_class = String::new();
     for ch in child_class.chars() {
@@ -90,6 +113,9 @@ fn get_parent_class<'a>(child_class: &'a String) -> String {
         }
     }
     parent_class
+        .split(", ")
+        .map(|token| token.to_string())
+        .collect()
 }
 
 fn clean_child_class<'a>(child_class: &'a String) -> Option<String> {
@@ -101,12 +127,14 @@ fn clean_child_class<'a>(child_class: &'a String) -> Option<String> {
     token.next()
 }
 
-fn build_edges<'a>(child_classes: Vec<&'a String>) -> Vec<(String, String)> {
+fn build_edges(child_classes: Vec<String>) -> Vec<(String, String)> {
     let mut edges = vec![];
     for class in child_classes.iter() {
         let parent_class = get_parent_class(class);
-        let child_class = clean_child_class(*class).unwrap();
-        edges.push((child_class, parent_class));
+        let child_class = clean_child_class(class).unwrap();
+        for parent in parent_class.iter() {
+            edges.push((child_class.to_string(), parent.to_string()));
+        }
     }
     edges
 }
@@ -272,3 +300,6 @@ fn main() {
     )
     .unwrap();
 }
+
+#[cfg(test)]
+mod tests;

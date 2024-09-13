@@ -34,7 +34,7 @@ oop_viewer examples OtherChildClass
 ```
 
 ## Backlog
-- [ ] Multiple Inheritance
+- [X] Multiple Inheritance
 - [ ] Colour nodes based on file
 - [ ] Disambiguiting overlapping nodes
 - [X] Allowing for passing of class across module

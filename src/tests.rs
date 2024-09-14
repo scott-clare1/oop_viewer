@@ -141,3 +141,21 @@ fn test_separate_child_and_parent_class_multiple_inheritance() {
 
     assert_eq!(actual, expected);
 }
+
+#[test]
+fn test_filter_edges_by_class() {
+    let edges = vec![
+        (String::from("Child"), String::from("Parent")),
+        (String::from("Grandchild"), String::from("Child")),
+    ];
+    let class = Some(String::from("Parent"));
+
+    let actual = filter_edges_by_class(edges, class);
+
+    let expected = vec![
+        (String::from("Child"), String::from("Parent")),
+        (String::from("Grandchild"), String::from("Child")),
+    ];
+
+    assert_eq!(actual, expected);
+}

@@ -1,5 +1,6 @@
 use eframe::run_native;
 use petgraph::prelude::{DiGraphMap, StableGraph};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::env;
 use std::fs;
 use std::io;
@@ -128,9 +129,9 @@ fn separate_child_and_parent_class<'a>(class: &'a String) -> (String, Vec<String
 fn build_edges(child_classes: Vec<String>) -> Vec<(String, String)> {
     let mut edges = vec![];
     for class in child_classes.iter() {
-        let (child_class, parent_class) = separate_child_and_parent_class(class);
-        for parent in parent_class.iter() {
-            edges.push((child_class.to_string(), parent.to_string()));
+        let (child_class, parent_classes) = separate_child_and_parent_class(class);
+        for parent_class in parent_classes.iter() {
+            edges.push((child_class.to_string(), parent_class.to_string()));
         }
     }
     edges
@@ -144,14 +145,6 @@ fn parse_file<'a>(contents: String) -> Vec<(String, String)> {
     let child_classes = get_child_classes(classes);
 
     build_edges(child_classes)
-}
-
-fn build_graph<'a>(edges: &'static [(String, String)]) -> StableGraph<&'a str, i32> {
-    let mut graph = DiGraphMap::new();
-    for edge in edges.iter() {
-        graph.add_edge(edge.1.as_str(), edge.0.as_str(), -1);
-    }
-    StableGraph::from(graph.into_graph())
 }
 
 fn process_files(contents: Vec<String>, class: Option<String>) -> &'static [(String, String)] {
@@ -178,11 +171,40 @@ fn process_files(contents: Vec<String>, class: Option<String>) -> &'static [(Str
     Box::leak(filter_edges_by_class(edges.to_vec(), class).into_boxed_slice())
 }
 
-fn edge_contains_class((child, parent): (String, String), class: String) -> bool {
-    if child == class || parent == class {
-        true
-    } else {
-        false
+trait Graph {
+    fn build_graph(self, edges: &Vec<(String, String)>) -> HashMap<String, Vec<String>>;
+
+    fn bfs(&self, class: &String) -> HashSet<String>;
+}
+
+impl Graph for HashMap<String, Vec<String>> {
+    fn build_graph(mut self, edges: &Vec<(String, String)>) -> HashMap<String, Vec<String>> {
+        for (child, parent) in edges.iter() {
+            if !parent.is_empty() {
+                self.entry(parent.clone()).or_default().push(child.clone());
+            }
+        }
+        self
+    }
+
+    fn bfs(&self, class: &String) -> HashSet<String> {
+        let mut visited = HashSet::new();
+        let mut queue = VecDeque::new();
+        queue.push_back(class.to_string());
+
+        while let Some(current_class) = queue.pop_front() {
+            if !visited.contains(&current_class) {
+                visited.insert(current_class.clone());
+                if let Some(children) = self.get(&current_class) {
+                    for child in children {
+                        if !visited.contains(child) {
+                            queue.push_back(child.clone());
+                        }
+                    }
+                }
+            }
+        }
+        visited
     }
 }
 
@@ -192,12 +214,13 @@ fn filter_edges_by_class(
 ) -> Vec<(String, String)> {
     if class.is_some() {
         let class = class.unwrap();
+
+        let visited = HashMap::new().build_graph(&edges).bfs(&class);
+
         edges
             .iter()
-            .filter(|(child, parent)| {
-                edge_contains_class((child.to_string(), parent.to_string()), class.clone())
-            })
-            .map(|(child, parent)| (child.to_string(), parent.to_string()))
+            .filter(|(child, parent)| visited.contains(child) || visited.contains(parent))
+            .cloned()
             .collect()
     } else {
         edges
@@ -275,6 +298,19 @@ impl CommandLineConfig {
     }
 }
 
+trait AddEdges<'a> {
+    fn add_edges(self, edges: &'static [(String, String)]) -> DiGraphMap<&'a str, i32>;
+}
+
+impl<'a> AddEdges<'a> for DiGraphMap<&'a str, i32> {
+    fn add_edges(mut self, edges: &'static [(String, String)]) -> DiGraphMap<&'a str, i32> {
+        for edge in edges.iter() {
+            self.add_edge(edge.1.as_str(), edge.0.as_str(), -1);
+        }
+        self
+    }
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -284,7 +320,7 @@ fn main() {
 
     let edges: &'static [(String, String)] = process_files(contents, config.class);
 
-    let graph = build_graph(edges);
+    let graph = DiGraphMap::new().add_edges(edges);
 
     let mut native_options = eframe::NativeOptions::default();
 
@@ -293,7 +329,12 @@ fn main() {
     run_native(
         "",
         native_options,
-        Box::new(|cc| Ok(Box::new(app::OOPViewerApp::new(graph, cc)))),
+        Box::new(|cc| {
+            Ok(Box::new(app::OOPViewerApp::new(
+                StableGraph::from(graph.into_graph()),
+                cc,
+            )))
+        }),
     )
     .unwrap();
 }

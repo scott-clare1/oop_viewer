@@ -118,23 +118,26 @@ fn test_get_child_classes_multiple_inheritance() {
 }
 
 #[test]
-fn test_get_parent_class_single_inheritance() {
+fn test_separate_child_and_parent_class_single_inheritance() {
     let class = String::from("Test(Parent):");
 
-    let actual = get_parent_class(&class);
+    let actual = separate_child_and_parent_class(&class);
 
-    let expected = vec![String::from("Parent")];
+    let expected = (String::from("Test"), vec![String::from("Parent")]);
 
     assert_eq!(actual, expected);
 }
 
 #[test]
-fn test_get_parent_class_multiple_inheritance() {
+fn test_separate_child_and_parent_class_multiple_inheritance() {
     let class = String::from("Test(Parent, Sibling):");
 
-    let actual = get_parent_class(&class);
+    let actual = separate_child_and_parent_class(&class);
 
-    let expected = vec![String::from("Parent"), String::from("Sibling")];
+    let expected = (
+        String::from("Test"),
+        vec![String::from("Parent"), String::from("Sibling")],
+    );
 
     assert_eq!(actual, expected);
 }

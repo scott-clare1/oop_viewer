@@ -96,42 +96,39 @@ fn get_child_classes<'a>(classes: Vec<Vec<&String>>) -> Vec<String> {
     child_classes
 }
 
-fn get_parent_class<'a>(child_class: &'a String) -> Vec<String> {
+fn separate_child_and_parent_class<'a>(class: &'a String) -> (String, Vec<String>) {
     let mut begin_parent_class: bool = false;
     let mut parent_class = String::new();
-    for ch in child_class.chars() {
+    let mut child_class = String::new();
+    for ch in class.chars() {
         if ch == ')' {
-            begin_parent_class = false;
-        }
-
-        if begin_parent_class == true {
-            parent_class.push(ch);
+            break;
         }
 
         if ch == '(' {
             begin_parent_class = true;
+            continue;
+        }
+
+        if begin_parent_class == true {
+            parent_class.push(ch);
+        } else {
+            child_class.push(ch);
         }
     }
-    parent_class
-        .split(", ")
-        .map(|token| token.to_string())
-        .collect()
-}
-
-fn clean_child_class<'a>(child_class: &'a String) -> Option<String> {
-    let mut tokens = child_class
-        .split('(')
-        .map(|token| token.to_string())
-        .collect::<Vec<String>>();
-    let mut token = tokens.drain(0..1);
-    token.next()
+    (
+        child_class,
+        parent_class
+            .split(", ")
+            .map(|token| token.to_string())
+            .collect(),
+    )
 }
 
 fn build_edges(child_classes: Vec<String>) -> Vec<(String, String)> {
     let mut edges = vec![];
     for class in child_classes.iter() {
-        let parent_class = get_parent_class(class);
-        let child_class = clean_child_class(class).unwrap();
+        let (child_class, parent_class) = separate_child_and_parent_class(class);
         for parent in parent_class.iter() {
             edges.push((child_class.to_string(), parent.to_string()));
         }
